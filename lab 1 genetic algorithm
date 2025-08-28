@@ -49,7 +49,7 @@ def genetic_algorithm():
     population = get_population_from_input()
     print(f"Initial Population: {population}")
 
-    best_overall_chromosome = population[0] # Initialize with the first chromosome
+    best_overall_chromosome = population[0]
     best_overall_fitness = fitness(best_overall_chromosome)
 
     for generation in range(MAX_GENERATIONS):
