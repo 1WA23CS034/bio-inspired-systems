@@ -49,6 +49,9 @@ def genetic_algorithm():
     population = get_population_from_input()
     print(f"Initial Population: {population}")
 
+    best_overall_chromosome = population[0] # Initialize with the first chromosome
+    best_overall_fitness = fitness(best_overall_chromosome)
+
     for generation in range(MAX_GENERATIONS):
         new_population = []
         while len(new_population) < POP_SIZE:
@@ -58,14 +61,19 @@ def genetic_algorithm():
             child1 = mutate(child1)
             child2 = mutate(child2)
             new_population.extend([child1, child2])
-       
+
         population = new_population[:POP_SIZE]
 
-        best = max(population, key=fitness)
-        print(f"Generation {generation + 1}: Best Chromosome = {best}, Fitness = {fitness(best)}")
+        best_this_generation = max(population, key=fitness)
+        best_this_generation_fitness = fitness(best_this_generation)
 
-    best_overall = max(population, key=fitness)
-    print(f"\nBest solution after {MAX_GENERATIONS} generations: {best_overall} with fitness = {fitness(best_overall)}")
+        if best_this_generation_fitness > best_overall_fitness:
+            best_overall_fitness = best_this_generation_fitness
+            best_overall_chromosome = best_this_generation
+
+        print(f"Generation {generation + 1}: Best Chromosome = {best_this_generation}, Fitness = {best_this_generation_fitness}")
+
+    print(f"\nBest solution after {MAX_GENERATIONS} generations: {best_overall_chromosome} with fitness = {best_overall_fitness}")
 
 if __name__ == "__main__":
     genetic_algorithm()
