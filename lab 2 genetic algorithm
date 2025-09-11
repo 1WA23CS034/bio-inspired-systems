@@ -1,0 +1,81 @@
+import random
+
+def target_function(x):
+    return -x**2 + 10*x
+
+POP_SIZE = 4
+CHROM_LENGTH = 5
+MAX_GENERATIONS = 5
+MUTATION_RATE = 0.1
+
+def binary_to_int(chromosome):
+    return int(chromosome, 2)
+
+def fitness(chromosome):
+    x = binary_to_int(chromosome)
+    return target_function(x)
+
+def get_population_from_input():
+    population = []
+    print(f"Enter {POP_SIZE} chromosomes (each {CHROM_LENGTH} bits, only 0 or 1):")
+    while len(population) < POP_SIZE:
+        chrom = input(f"Chromosome {len(population) + 1}: ").strip()
+        if len(chrom) == CHROM_LENGTH and all(c in '01' for c in chrom):
+            population.append(chrom)
+        else:
+            print(f"Invalid chromosome! Please enter exactly {CHROM_LENGTH} bits (0 or 1).")
+    return population
+
+def select(population):
+    tournament_size = 2
+    tournament = random.sample(population, tournament_size)
+    return max(tournament, key=fitness)
+
+def crossover(parent1, parent2):
+    point = random.randint(1, CHROM_LENGTH - 1)
+    child1 = parent1[:point] + parent2[point:]
+    child2 = parent2[:point] + parent1[point:]
+    return child1, child2
+
+def mutate(chromosome):
+    mutated_chromosome = ""
+    for bit in chromosome:
+        if random.random() < MUTATION_RATE:
+            mutated_chromosome += '1' if bit == '0' else '0'
+        else:
+            mutated_chromosome += bit
+    return mutated_chromosome
+
+def genetic_algorithm():
+    population = get_population_from_input()
+    best_solution = None
+    best_fitness = -float('inf')
+
+    print(f"Initial Population: {population}")
+
+    for generation in range(MAX_GENERATIONS):
+        new_population = []
+        while len(new_population) < POP_SIZE:
+            parent1 = select(population)
+            parent2 = select(population)
+            child1, child2 = crossover(parent1, parent2)
+            new_population.append(mutate(child1))
+            if len(new_population) < POP_SIZE:
+                new_population.append(mutate(child2))
+
+
+        population = new_population
+
+        current_best = max(population, key=fitness)
+        current_best_fitness = fitness(current_best)
+
+        if current_best_fitness > best_fitness:
+            best_fitness = current_best_fitness
+            best_solution = current_best
+
+        print(f"Generation {generation + 1}: Best Chromosome = {best_solution}, Fitness = {best_fitness}")
+
+    print(f"\nBest solution after {MAX_GENERATIONS} generations: {best_solution} with fitness = {best_fitness} (x = {binary_to_int(best_solution)})")
+
+if __name__ == "__main__":
+    genetic_algorithm()
