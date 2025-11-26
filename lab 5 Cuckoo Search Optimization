@@ -1,0 +1,78 @@
+import numpy as np
+import random
+
+weights = [2, 2, 4, 4, 6, 1]
+values  = [4, 4, 7, 7, 9, 1]
+capacity = 10
+num_items = len(weights)
+
+def fitness(solution):
+    total_weight = sum([weights[i] for i in range(num_items) if solution[i] == 1])
+    total_value = sum([values[i] for i in range(num_items) if solution[i] == 1])
+    if total_weight > capacity:
+        return 0
+    else:
+        return total_value
+
+def levy_flight(solution):
+    new_solution = solution.copy()
+    num_flips = random.randint(1, 2)
+    flip_indices = random.sample(range(num_items), num_flips)
+    for idx in flip_indices:
+        new_solution[idx] = 1 - new_solution[idx]
+    return new_solution
+
+def cuckoo_search_knapsack(num_nests=10, max_iter=3, pa=0.3):
+    nests = [np.random.randint(0, 2, num_items).tolist() for _ in range(num_nests)]
+    fitnesses = [fitness(nest) for nest in nests]
+    best_idx = np.argmax(fitnesses)
+    best_nest = nests[best_idx]
+    best_fitness = fitnesses[best_idx]
+
+    for iteration in range(max_iter):
+        new_nests = []
+        for nest in nests:
+            new_nest = levy_flight(nest)
+            new_nests.append(new_nest)
+
+        for i in range(num_nests):
+            if fitness(new_nests[i]) > fitness(nests[i]):
+                nests[i] = new_nests[i]
+
+        fitnesses = [fitness(nest) for nest in nests]
+        num_abandon = int(pa * num_nests)
+        worst_indices = np.argsort(fitnesses)[:num_abandon]
+
+        for idx in worst_indices:
+            nests[idx] = np.random.randint(0, 2, num_items).tolist()
+
+        fitnesses = [fitness(nest) for nest in nests]
+        current_best_idx = np.argmax(fitnesses)
+        current_best_fitness = fitnesses[current_best_idx]
+
+        if current_best_fitness > best_fitness:
+            best_fitness = current_best_fitness
+            best_nest = nests[current_best_idx]
+
+        selected_items = [i for i in range(num_items) if best_nest[i] == 1]
+        selected_weights = [weights[i] for i in selected_items]
+        selected_values = [values[i] for i in selected_items]
+
+        print(f"\nIteration {iteration+1}")
+        print(f"Best Fitness so far: {best_fitness}")
+        print(f"Items Selected: {selected_items}")
+        print(f"Total Weight: {sum(selected_weights)}")
+        print(f"Total Value: {sum(selected_values)}")
+
+    print("\n--- Final Best Solution ---")
+    selected_items = [i for i in range(num_items) if best_nest[i] == 1]
+    selected_weights = [weights[i] for i in selected_items]
+    selected_values = [values[i] for i in selected_items]
+
+    print(f"Items Selected: {selected_items}")
+    print(f"Total Weight: {sum(selected_weights)}")
+    print(f"Total Value: {sum(selected_values)}")
+
+    return best_nest, best_fitness
+
+best_solution, best_value = cuckoo_search_knapsack()
